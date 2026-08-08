@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Журнал — Admin</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a href="/users" class="brand">
+      <img src="/logo.png" alt="Dating MAX" class="brand-logo">
+      <span>Dating MAX · Admin</span>
+    </a>
+    <nav class="topnav">
+      <a href="/users">Пользователи</a>
+      <a href="/broadcast">Рассылка</a>
+      <a href="/stop-words">Стоп-слова</a>
+      <a href="/reports">Жалобы</a>
+      <a href="/analytics">Аналитика</a>
+      <a href="/admins">Админы</a>
+      <a href="/admin-log" class="active">Журнал</a>
+    </nav>
+    <div class="admin-id"><%= adminName %> <span class="role-tag">админ</span></div>
+    <form method="POST" action="/logout"><button class="link-btn" type="submit">Выйти</button></form>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">Журнал действий администраторов</h1>
+    <p class="hint">Последние 200 записей.</p>
+
+    <table class="users-table">
+      <thead>
+        <tr><th>Когда</th><th>Кто</th><th>Действие</th><th>Пользователь</th><th>Детали</th></tr>
+      </thead>
+      <tbody>
+        <% logs.forEach(l => { %>
+          <tr>
+            <td><%= l.created_at %></td>
+            <td><%= l.admin_name %></td>
+            <td><span class="badge"><%= l.action %></span></td>
+            <td><% if (l.target_user_id) { %><a href="/users/<%= l.target_user_id %>">ID <%= l.target_user_id %></a><% } else { %>—<% } %></td>
+            <td><%= l.details || '—' %></td>
+          </tr>
+        <% }) %>
+        <% if (logs.length === 0) { %>
+          <tr><td colspan="5" class="empty-row">Записей пока нет</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </main>
+</body>
+</html>

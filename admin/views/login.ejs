@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Вход — Admin</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="login-page">
+  <form class="login-box" method="POST" action="/login">
+    <img src="/logo.png" alt="Dating MAX" class="login-logo">
+    <h1>Admin-панель</h1>
+    <% if (error) { %>
+      <p class="error"><%= error %></p>
+    <% } %>
+    <label>Логин</label>
+    <input type="text" name="username" required autofocus>
+    <label>Пароль</label>
+    <input type="password" name="password" required>
+    <button type="submit">Войти</button>
+  </form>
+</body>
+</html>

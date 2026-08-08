@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title><%= user.name || 'Пользователь' %> — Admin</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a href="/users" class="brand">
+      <img src="/logo.png" alt="Dating MAX" class="brand-logo">
+      <span>Dating MAX · Admin</span>
+    </a>
+    <nav class="topnav">
+      <a href="/users">Пользователи</a>
+      <a href="/broadcast">Рассылка</a>
+      <a href="/stop-words">Стоп-слова</a>
+      <a href="/reports">Жалобы</a>
+      <a href="/analytics">Аналитика</a>
+      <% if (role === 'admin') { %>
+        <a href="/admins">Админы</a>
+        <a href="/admin-log">Журнал</a>
+      <% } %>
+    </nav>
+    <div class="admin-id"><%= adminName %> <span class="role-tag"><%= role === 'admin' ? 'админ' : 'модератор' %></span></div>
+    <form method="POST" action="/logout"><button class="link-btn" type="submit">Выйти</button></form>
+  </header>
+
+  <main class="page">
+    <a href="/users" class="back-link">← К списку пользователей</a>
+    <% if (saved) { %><p class="notice">Сохранено ✅</p><% } %>
+    <% if (notifyError) { %>
+      <p class="error">Анкета обновлена, но не удалось отправить уведомление пользователю через MAX: <%= notifyError %></p>
+    <% } %>
+
+    <div class="user-page">
+      <aside class="user-photo card">
+        <% if (user.photo_url) { %>
+          <img src="<%= user.photo_url %>" alt="">
+        <% } else { %>
+          <div class="thumb placeholder large">Нет фото</div>
+        <% } %>
+        <p><span class="badge badge-<%= user.reg_state %>"><%= user.reg_state %></span>
+          <% if (user.banned) { %> <span class="badge badge-banned">заблокирован</span><% } %></p>
+        <% if (user.review_note) { %>
+          <p class="review-note-current"><b>Текущее замечание:</b> <%= user.review_note %></p>
+        <% } %>
+        <p class="meta">ID: <%= user.user_id %><br>username: <%= user.username || '—' %><br>Зарегистрирован: <%= user.created_at %></p>
+      </aside>
+
+      <div class="user-forms">
+        <section class="card">
+          <h2>Данные анкеты</h2>
+          <form method="POST" action="/users/<%= user.user_id %>" class="edit-form">
+            <label>Имя</label>
+            <input type="text" name="name" value="<%= user.name || '' %>">
+
+            <label>Возраст</label>
+            <input type="number" name="age" value="<%= user.age || '' %>" min="18" max="100">
+
+            <label>Город</label>
+            <input type="text" name="city" value="<%= user.city || '' %>">
+
+            <label>Пол</label>
+            <select name="gender">
+              <option value="" <%= !user.gender ? 'selected' : '' %>>—</option>
+              <option value="male" <%= user.gender === 'male' ? 'selected' : '' %>>Мужской</option>
+              <option value="female" <%= user.gender === 'female' ? 'selected' : '' %>>Женский</option>
+            </select>
+
+            <label>Описание</label>
+            <textarea name="bio" maxlength="200" rows="3"><%= user.bio || '' %></textarea>
+
+            <button type="submit">Сохранить изменения</button>
+          </form>
+        </section>
+
+        <section class="card">
+          <h2>Отправить на доработку</h2>
+          <p class="hint">Анкета будет скрыта от других пользователей, пока человек её не исправит и не сохранит. Ему придёт уведомление в MAX.</p>
+          <form method="POST" action="/users/<%= user.user_id %>/reject" class="reject-form">
+            <label>Комментарий пользователю (за что отправлено)</label>
+            <textarea name="note" rows="2" required placeholder="Например: неприемлемое фото профиля"></textarea>
+
+            <label class="checkbox"><input type="checkbox" name="clear_photo" value="1"> Удалить текущее фото</label>
+            <label class="checkbox"><input type="checkbox" name="clear_bio" value="1"> Удалить описание</label>
+            <label class="checkbox"><input type="checkbox" name="clear_name" value="1"> Удалить имя</label>
+
+            <button type="submit" class="warn-btn">Отправить на доработку</button>
+          </form>
+        </section>
+
+        <% if (role === 'admin') { %>
+          <% if (user.banned) { %>
+            <section class="card ban-section banned">
+              <h2>🚫 Пользователь заблокирован</h2>
+              <p class="review-note-current"><b>Причина:</b> <%= user.ban_reason %></p>
+              <form method="POST" action="/users/<%= user.user_id %>/unban" onsubmit="return confirm('Снять блокировку с пользователя?');">
+                <button type="submit" class="unban-btn">Снять блокировку</button>
+              </form>
+            </section>
+          <% } else { %>
+            <section class="card ban-section">
+              <h2>Заблокировать навсегда</h2>
+              <p class="hint">Пользователь больше не сможет пользоваться ботом ни в каком виде — только просмотр отказа. Используй за грубые/повторные нарушения правил.</p>
+              <form method="POST" action="/users/<%= user.user_id %>/ban" class="reject-form" onsubmit="return confirm('Заблокировать пользователя навсегда?');">
+                <label>Причина блокировки</label>
+                <textarea name="ban_reason" rows="2" required placeholder="Например: оскорбления в переписке, повторное нарушение правил"></textarea>
+                <button type="submit" class="danger-btn">Заблокировать пользователя</button>
+              </form>
+            </section>
+          <% } %>
+
+          <section class="card danger-zone">
+            <h2>Опасная зона</h2>
+            <p class="hint">Полное удаление стирает анкету безвозвратно — в отличие от самостоятельного удаления пользователем, которое сохраняется в статистике.</p>
+            <form method="POST" action="/users/<%= user.user_id %>/delete" onsubmit="return confirm('Точно удалить анкету пользователя безвозвратно?');">
+              <button type="submit" class="danger-btn">Удалить анкету безвозвратно</button>
+            </form>
+          </section>
+        <% } else if (user.banned) { %>
+          <section class="card ban-section banned">
+            <h2>🚫 Пользователь заблокирован</h2>
+            <p class="review-note-current"><b>Причина:</b> <%= user.ban_reason %></p>
+            <p class="hint">Снять блокировку может только администратор.</p>
+          </section>
+        <% } %>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

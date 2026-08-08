@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Пользователи — Admin</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a href="/users" class="brand">
+      <img src="/logo.png" alt="Dating MAX" class="brand-logo">
+      <span>Dating MAX · Admin</span>
+    </a>
+    <nav class="topnav">
+      <a href="/users" class="active">Пользователи</a>
+      <a href="/broadcast">Рассылка</a>
+      <a href="/stop-words">Стоп-слова</a>
+      <a href="/reports">Жалобы</a>
+      <a href="/analytics">Аналитика</a>
+      <% if (role === 'admin') { %>
+        <a href="/admins">Админы</a>
+        <a href="/admin-log">Журнал</a>
+      <% } %>
+    </nav>
+    <div class="admin-id"><%= adminName %> <span class="role-tag"><%= role === 'admin' ? 'админ' : 'модератор' %></span></div>
+    <form method="POST" action="/logout"><button class="link-btn" type="submit">Выйти</button></form>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">Пользователи</h1>
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value"><%= stats.total %></div>
+        <div class="stat-label">Всего анкет</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value"><%= stats.active %></div>
+        <div class="stat-label">Активных</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value"><%= stats.inProgress %></div>
+        <div class="stat-label">Заполняют анкету</div>
+      </div>
+      <div class="stat-card stat-warn">
+        <div class="stat-value"><%= stats.reviewRequired %></div>
+        <div class="stat-label">На доработке</div>
+      </div>
+      <div class="stat-card stat-danger">
+        <div class="stat-value"><%= stats.openReports %></div>
+        <div class="stat-label">Открытых жалоб</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value"><%= stats.matches %></div>
+        <div class="stat-label">Мэтчей</div>
+      </div>
+      <div class="stat-card stat-danger">
+        <div class="stat-value"><%= stats.banned %></div>
+        <div class="stat-label">Заблокировано</div>
+      </div>
+      <div class="stat-card stat-muted">
+        <div class="stat-value"><%= stats.deletedByUser %></div>
+        <div class="stat-label">Удалено пользователями</div>
+      </div>
+    </section>
+
+    <div class="toolbar">
+      <div class="sort-group">
+        <span class="toolbar-label">Сортировка</span>
+        <a href="?sortBy=created_at&order=desc&showDeleted=<%= showDeleted?1:0 %>" class="<%= sortBy==='created_at'&&order==='desc'?'active':'' %>">Сначала новые</a>
+        <a href="?sortBy=created_at&order=asc&showDeleted=<%= showDeleted?1:0 %>" class="<%= sortBy==='created_at'&&order==='asc'?'active':'' %>">Сначала старые</a>
+        <a href="?sortBy=age&order=asc&showDeleted=<%= showDeleted?1:0 %>" class="<%= sortBy==='age'?'active':'' %>">По возрасту</a>
+        <a href="?sortBy=city&order=asc&showDeleted=<%= showDeleted?1:0 %>" class="<%= sortBy==='city'?'active':'' %>">По городу</a>
+        <a href="?sortBy=name&order=asc&showDeleted=<%= showDeleted?1:0 %>" class="<%= sortBy==='name'?'active':'' %>">По имени</a>
+        <a href="?sortBy=reg_state&order=asc&showDeleted=<%= showDeleted?1:0 %>" class="<%= sortBy==='reg_state'?'active':'' %>">По статусу</a>
+      </div>
+      <a class="toggle-deleted" href="?sortBy=<%= sortBy %>&order=<%= order %>&showDeleted=<%= showDeleted?0:1 %>">
+        <%= showDeleted ? 'Скрыть удалённые пользователем' : 'Показать удалённые пользователем' %>
+      </a>
+    </div>
+
+    <table class="users-table">
+      <thead>
+        <tr>
+          <th>Фото</th><th>Имя</th><th>Возраст</th><th>Город</th><th>Пол</th><th>Статус</th><th>Регистрация</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% users.forEach(u => { %>
+          <tr onclick="location.href='/users/<%= u.user_id %>'" class="row-link">
+            <td>
+              <% if (u.photo_url) { %>
+                <img class="thumb" src="<%= u.photo_url %>" alt="">
+              <% } else { %>
+                <div class="thumb placeholder">—</div>
+              <% } %>
+            </td>
+            <td><%= u.name || '—' %></td>
+            <td><%= u.age || '—' %></td>
+            <td><%= u.city || '—' %></td>
+            <td><%= u.gender === 'male' ? 'М' : (u.gender === 'female' ? 'Ж' : '—') %></td>
+            <td>
+              <span class="badge badge-<%= u.reg_state %>"><%= u.reg_state %></span>
+              <% if (u.banned) { %><span class="badge badge-banned">бан</span><% } %>
+            </td>
+            <td><%= u.created_at %></td>
+          </tr>
+        <% }) %>
+        <% if (users.length === 0) { %>
+          <tr><td colspan="7" class="empty-row">Пользователей нет</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </main>
+</body>
+</html>

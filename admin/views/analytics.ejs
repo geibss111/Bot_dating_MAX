@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Аналитика — Admin</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a href="/users" class="brand">
+      <img src="/logo.png" alt="Dating MAX" class="brand-logo">
+      <span>Dating MAX · Admin</span>
+    </a>
+    <nav class="topnav">
+      <a href="/users">Пользователи</a>
+      <a href="/broadcast">Рассылка</a>
+      <a href="/stop-words">Стоп-слова</a>
+      <a href="/reports">Жалобы</a>
+      <a href="/analytics" class="active">Аналитика</a>
+      <% if (role === 'admin') { %>
+        <a href="/admins">Админы</a>
+        <a href="/admin-log">Журнал</a>
+      <% } %>
+    </nav>
+    <div class="admin-id"><%= adminName %> <span class="role-tag"><%= role === 'admin' ? 'админ' : 'модератор' %></span></div>
+    <form method="POST" action="/logout"><button class="link-btn" type="submit">Выйти</button></form>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">Аналитика</h1>
+
+    <section class="card">
+      <h2>Регистрации за последние 30 дней</h2>
+      <canvas id="regChart" height="90"></canvas>
+    </section>
+
+    <section class="card funnel-card">
+      <h2>Воронка</h2>
+      <div class="funnel">
+        <div class="funnel-stage">
+          <div class="funnel-bar" style="width: 100%;">
+            <span><%= funnel.started %></span>
+          </div>
+          <div class="funnel-label">Начали заполнять анкету</div>
+        </div>
+        <div class="funnel-stage">
+          <div class="funnel-bar" style="width: <%= funnel.started ? Math.max(8, Math.round(funnel.completed / funnel.started * 100)) : 0 %>%;">
+            <span><%= funnel.completed %></span>
+          </div>
+          <div class="funnel-label">
+            Завершили анкету
+            <% if (funnel.started) { %> (<%= Math.round(funnel.completed / funnel.started * 100) %>%)<% } %>
+          </div>
+        </div>
+        <div class="funnel-stage">
+          <div class="funnel-bar" style="width: <%= funnel.started ? Math.max(8, Math.round(funnel.matched / funnel.started * 100)) : 0 %>%;">
+            <span><%= funnel.matched %></span>
+          </div>
+          <div class="funnel-label">
+            Получили хотя бы один мэтч
+            <% if (funnel.started) { %> (<%= Math.round(funnel.matched / funnel.started * 100) %>%)<% } %>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+  <script>
+    const labels = <%- JSON.stringify(registrations.map(r => r.day)) %>;
+    const counts = <%- JSON.stringify(registrations.map(r => r.cnt)) %>;
+
+    new Chart(document.getElementById('regChart'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Регистраций',
+          data: counts,
+          backgroundColor: '#2952cc',
+          borderRadius: 4,
+        }],
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { precision: 0 } },
+        },
+      },
+    });
+  </script>
+</body>
+</html>

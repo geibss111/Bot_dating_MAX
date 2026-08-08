@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Рассылка — Admin</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a href="/users" class="brand">
+      <img src="/logo.png" alt="Dating MAX" class="brand-logo">
+      <span>Dating MAX · Admin</span>
+    </a>
+    <nav class="topnav">
+      <a href="/users">Пользователи</a>
+      <a href="/broadcast" class="active">Рассылка</a>
+      <a href="/stop-words">Стоп-слова</a>
+      <a href="/reports">Жалобы</a>
+      <a href="/analytics">Аналитика</a>
+      <% if (role === 'admin') { %>
+        <a href="/admins">Админы</a>
+        <a href="/admin-log">Журнал</a>
+      <% } %>
+    </nav>
+    <div class="admin-id"><%= adminName %> <span class="role-tag"><%= role === 'admin' ? 'админ' : 'модератор' %></span></div>
+    <form method="POST" action="/logout"><button class="link-btn" type="submit">Выйти</button></form>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">Рассылка сообщений</h1>
+    <p class="hint">Сообщение уйдёт всем пользователям, подходящим под фильтры (не считая тех, кто ещё не запускал бота, и тех, кто удалил анкету сам). Можно оставить фильтры пустыми, чтобы отправить всем.</p>
+
+    <% if (result) { %>
+      <% if (result.error) { %>
+        <p class="error"><%= result.error %></p>
+      <% } else { %>
+        <p class="notice">Отправлено: <%= result.sent %> из <%= result.total %><% if (result.failed) { %>, ошибок: <%= result.failed %><% } %></p>
+      <% } %>
+    <% } %>
+
+    <form method="POST" action="/broadcast" class="card broadcast-form">
+      <label>Текст сообщения</label>
+      <textarea name="text" rows="5" required placeholder="Например: новая функция — теперь можно добавить описание в анкету!"><%= form.text || '' %></textarea>
+
+      <div class="filters-row">
+        <div>
+          <label>Город</label>
+          <select name="city">
+            <option value="">Все города</option>
+            <% cities.forEach(c => { %>
+              <option value="<%= c %>" <%= form.city === c ? 'selected' : '' %>><%= c %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div>
+          <label>Пол</label>
+          <select name="gender">
+            <option value="">Любой</option>
+            <option value="male" <%= form.gender === 'male' ? 'selected' : '' %>>Мужской</option>
+            <option value="female" <%= form.gender === 'female' ? 'selected' : '' %>>Женский</option>
+          </select>
+        </div>
+        <div>
+          <label>Возраст от</label>
+          <input type="number" name="ageMin" min="18" max="100" value="<%= form.ageMin || '' %>">
+        </div>
+        <div>
+          <label>Возраст до</label>
+          <input type="number" name="ageMax" min="18" max="100" value="<%= form.ageMax || '' %>">
+        </div>
+      </div>
+
+      <button type="submit" class="broadcast-btn" onclick="return confirm('Отправить сообщение всем подходящим пользователям?');">Отправить рассылку</button>
+    </form>
+  </main>
+</body>
+</html>

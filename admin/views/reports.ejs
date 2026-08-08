@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Жалобы — Admin</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a href="/users" class="brand">
+      <img src="/logo.png" alt="Dating MAX" class="brand-logo">
+      <span>Dating MAX · Admin</span>
+    </a>
+    <nav class="topnav">
+      <a href="/users">Пользователи</a>
+      <a href="/broadcast">Рассылка</a>
+      <a href="/stop-words">Стоп-слова</a>
+      <a href="/reports" class="active">Жалобы</a>
+      <a href="/analytics">Аналитика</a>
+      <% if (role === 'admin') { %>
+        <a href="/admins">Админы</a>
+        <a href="/admin-log">Журнал</a>
+      <% } %>
+    </nav>
+    <div class="admin-id"><%= adminName %> <span class="role-tag"><%= role === 'admin' ? 'админ' : 'модератор' %></span></div>
+    <form method="POST" action="/logout"><button class="link-btn" type="submit">Выйти</button></form>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">Жалобы пользователей</h1>
+
+    <div class="toolbar">
+      <div class="sort-group">
+        <a href="/reports?status=open" class="<%= filter === 'open' ? 'active' : '' %>">Открытые</a>
+        <a href="/reports?status=all" class="<%= filter === 'all' ? 'active' : '' %>">Все</a>
+      </div>
+    </div>
+
+    <div class="reports-list">
+      <% reports.forEach(r => { %>
+        <div class="card report-card <%= r.status === 'open' ? '' : 'report-resolved' %>">
+          <div class="report-main">
+            <% if (r.reported_photo_url) { %>
+              <img class="thumb" src="<%= r.reported_photo_url %>" alt="">
+            <% } else { %>
+              <div class="thumb placeholder">—</div>
+            <% } %>
+            <div>
+              <div class="report-target">
+                На <a href="/users/<%= r.reported_id %>"><%= r.reported_name || ('ID ' + r.reported_id) %></a>
+                <% if (r.reported_age) { %>, <%= r.reported_age %><% } %>
+                <% if (r.reported_city) { %>, <%= r.reported_city %><% } %>
+                <% if (r.reported_banned) { %><span class="badge badge-banned">уже забанен</span><% } %>
+              </div>
+              <div class="report-reason"><%= r.reason || '—' %></div>
+              <div class="report-meta">
+                от <%= r.reporter_name || ('ID ' + r.reporter_id) %> · <%= r.created_at %>
+                <% if (r.status === 'resolved') { %> · <span class="badge badge-done">рассмотрено</span><% } %>
+              </div>
+            </div>
+          </div>
+          <div class="report-actions">
+            <a href="/users/<%= r.reported_id %>" class="report-link-btn">Открыть анкету</a>
+            <% if (r.status === 'open') { %>
+              <form method="POST" action="/reports/<%= r.id %>/resolve">
+                <button type="submit" class="unban-btn">Отметить рассмотренной</button>
+              </form>
+            <% } %>
+          </div>
+        </div>
+      <% }) %>
+      <% if (reports.length === 0) { %>
+        <p class="empty-row">Жалоб нет</p>
+      <% } %>
+    </div>
+  </main>
+</body>
+</html>

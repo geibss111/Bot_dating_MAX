@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Админы — Admin</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a href="/users" class="brand">
+      <img src="/logo.png" alt="Dating MAX" class="brand-logo">
+      <span>Dating MAX · Admin</span>
+    </a>
+    <nav class="topnav">
+      <a href="/users">Пользователи</a>
+      <a href="/broadcast">Рассылка</a>
+      <a href="/stop-words">Стоп-слова</a>
+      <a href="/reports">Жалобы</a>
+      <a href="/analytics">Аналитика</a>
+      <a href="/admins" class="active">Админы</a>
+      <a href="/admin-log">Журнал</a>
+    </nav>
+    <div class="admin-id"><%= adminName %> <span class="role-tag">админ</span></div>
+    <form method="POST" action="/logout"><button class="link-btn" type="submit">Выйти</button></form>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">Админы и модераторы</h1>
+    <p class="hint">
+      Модератор может отправлять анкеты на доработку, редактировать данные, рассматривать жалобы —
+      но не может банить, удалять анкеты и управлять другими админами. Полные права — только у роли «Админ».
+    </p>
+
+    <% if (error) { %><p class="error"><%= error %></p><% } %>
+
+    <div class="card">
+      <div class="admin-row admin-row-header">
+        <div>Логин</div><div>Роль</div><div>Статус</div><div>Создан</div><div></div>
+      </div>
+      <div class="admin-row">
+        <div><%= superAdminUsername %></div>
+        <div><span class="badge badge-done">суперадмин</span></div>
+        <div>—</div>
+        <div>из .env</div>
+        <div></div>
+      </div>
+      <% admins.forEach(a => { %>
+        <div class="admin-row">
+          <div><%= a.username %></div>
+          <div>
+            <form method="POST" action="/admins/<%= a.id %>/role" class="inline-form">
+              <select name="role" onchange="this.form.submit()">
+                <option value="moderator" <%= a.role === 'moderator' ? 'selected' : '' %>>Модератор</option>
+                <option value="admin" <%= a.role === 'admin' ? 'selected' : '' %>>Админ</option>
+              </select>
+            </form>
+          </div>
+          <div>
+            <% if (a.blocked) { %><span class="badge badge-banned">заблокирован</span><% } else { %><span class="badge badge-done">активен</span><% } %>
+          </div>
+          <div><%= a.created_at %></div>
+          <div class="admin-row-actions">
+            <% if (a.blocked) { %>
+              <form method="POST" action="/admins/<%= a.id %>/unblock"><button type="submit" class="unban-btn">Разблокировать</button></form>
+            <% } else { %>
+              <form method="POST" action="/admins/<%= a.id %>/block"><button type="submit" class="warn-btn">Заблокировать</button></form>
+            <% } %>
+            <form method="POST" action="/admins/<%= a.id %>/delete" onsubmit="return confirm('Удалить аккаунт «<%= a.username %>» безвозвратно?');">
+              <button type="submit" class="danger-btn">Удалить</button>
+            </form>
+          </div>
+        </div>
+      <% }) %>
+      <% if (admins.length === 0) { %>
+        <p class="empty-row">Пока нет дополнительных аккаунтов</p>
+      <% } %>
+    </div>
+
+    <h2 class="page-title" style="margin-top: 28px; font-size: 16px;">Добавить аккаунт</h2>
+    <form method="POST" action="/admins" class="card edit-form">
+      <label>Логин</label>
+      <input type="text" name="username" required>
+
+      <label>Пароль</label>
+      <input type="text" name="password" required>
+
+      <label>Роль</label>
+      <select name="role">
+        <option value="moderator">Модератор (без бана/удаления)</option>
+        <option value="admin">Админ (полные права)</option>
+      </select>
+
+      <button type="submit">Создать аккаунт</button>
+    </form>
+  </main>
+</body>
+</html>

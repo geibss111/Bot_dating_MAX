@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Стоп-слова — Admin</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a href="/users" class="brand">
+      <img src="/logo.png" alt="Dating MAX" class="brand-logo">
+      <span>Dating MAX · Admin</span>
+    </a>
+    <nav class="topnav">
+      <a href="/users">Пользователи</a>
+      <a href="/broadcast">Рассылка</a>
+      <a href="/stop-words" class="active">Стоп-слова</a>
+      <a href="/reports">Жалобы</a>
+      <a href="/analytics">Аналитика</a>
+      <% if (role === 'admin') { %>
+        <a href="/admins">Админы</a>
+        <a href="/admin-log">Журнал</a>
+      <% } %>
+    </nav>
+    <div class="admin-id"><%= adminName %> <span class="role-tag"><%= role === 'admin' ? 'админ' : 'модератор' %></span></div>
+    <form method="POST" action="/logout"><button class="link-btn" type="submit">Выйти</button></form>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">Стоп-слова</h1>
+    <p class="hint">
+      Если пользователь попытается указать одно из этих слов в имени, городе или описании анкеты
+      (при регистрации или редактировании) — бот откажет и попросит ввести другой вариант.
+      Список полностью в твоих руках: добавляй и удаляй слова по необходимости.
+    </p>
+
+    <form method="POST" action="/stop-words" class="card stop-word-form">
+      <label>Добавить слово (или несколько — через запятую или с новой строки)</label>
+      <textarea name="word" rows="2" required placeholder="например: слово1, слово2"></textarea>
+      <button type="submit" class="broadcast-btn">Добавить</button>
+    </form>
+
+    <div class="card words-list-card">
+      <div class="words-list-header">Список (<%= words.length %>)</div>
+      <div class="words-grid">
+        <% words.forEach(w => { %>
+          <form method="POST" action="/stop-words/delete" class="word-chip" onsubmit="return confirm('Удалить слово «<%= w %>» из списка?');">
+            <span><%= w %></span>
+            <input type="hidden" name="word" value="<%= w %>">
+            <button type="submit" title="Удалить">✕</button>
+          </form>
+        <% }) %>
+        <% if (words.length === 0) { %>
+          <p class="empty-row">Список пуст</p>
+        <% } %>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
